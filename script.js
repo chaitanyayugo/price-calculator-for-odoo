@@ -116,7 +116,7 @@ async function runCalculator() {
     try {
       const parsed = parseVariant(line);
       const grade = getGrade(parsed.code);
-      const price = getPrice(parsed.model, parsed.config, grade);
+      const price = getFinalPrice(parsed.model, parsed.config, grade);
 
       results.push({
         ...parsed,
