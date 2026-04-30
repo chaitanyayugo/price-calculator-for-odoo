@@ -10,38 +10,45 @@ async function loadData() {
 // Parse Variant
 function parseVariant(input) {
   try {
-    // MODEL
-    const modelMatch = input.match(/\(DM\)\s*([A-Z0-9-]+)/);
-    if (!modelMatch) throw "Model not found";
-    const model = "DM-" + modelMatch[1];
+    // STEP 1: Extract ALL brackets
+    const brackets = input.match(/\(([^()]*)\)/g);
 
-    // LAST BRACKET PART → (NW-521E FROST, 2.5S2UA)
-    const lastPartMatch = input.match(/\(([^()]+,\s*[^()]+)\)\s*$/);
-    if (!lastPartMatch) throw "Fabric/Config block not found";
+    if (!brackets || brackets.length < 2) {
+      throw "Invalid format";
+    }
 
-    const lastPart = lastPartMatch[1];
+    // STEP 2: FIRST bracket = prefix (DM / NW / etc)
+    const prefix = brackets[0].replace(/[()]/g, "").trim();
 
-    // SPLIT: "NW-521E FROST" , "2.5S2UA"
-    const parts = lastPart.split(",");
-    if (parts.length < 2) throw "Invalid format";
+    // STEP 3: Extract model (text after first bracket)
+    const afterPrefix = input.split(")")[1].trim();
+    const modelName = afterPrefix.split(" ")[0];
 
-    const fabricPart = parts[0].trim();
-    const config = parts[1].trim();
+    const model = `${prefix}-${modelName}`;
 
-    // CODE = FIRST PART BEFORE "-"
-    const codeMatch = fabricPart.match(/^([A-Z]+)/);
-    if (!codeMatch) throw "Code not found";
+    // STEP 4: LAST bracket = fabric + config
+    const last = brackets[brackets.length - 1].replace(/[()]/g, "");
 
-    const code = codeMatch[1];
+    const [fabricPart, configPart] = last.split(",");
 
-    return { model, code, config };
+    if (!fabricPart || !configPart) {
+      throw "Invalid fabric/config format";
+    }
+
+    // STEP 5: Extract code dynamically
+    const code = fabricPart.trim().split("-")[0];
+
+    return {
+      model: model.trim(),
+      code: code.trim(),
+      config: configPart.trim()
+    };
 
   } catch (err) {
-    console.error("Parsing error:", input, err);
+    console.error("❌ Parsing failed:", input);
     throw err;
   }
 }
-
 // Get Grade
 function getGrade(code) {
   const item = material_master.find(m => m.code === code);
