@@ -1,0 +1,106 @@
+/* RESET */
+body {
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+  margin: 0;
+  padding: 40px;
+}
+
+/* CONTAINER */
+body {
+  max-width: 900px;
+  margin: auto;
+}
+
+/* TITLE */
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #38bdf8;
+  letter-spacing: 1px;
+}
+
+/* TEXTAREA */
+textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-size: 14px;
+  outline: none;
+  transition: 0.2s;
+}
+
+textarea:focus {
+  box-shadow: 0 0 0 2px #38bdf8;
+}
+
+/* BUTTON */
+button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+/* TABLE */
+table {
+  width: 100%;
+  margin-top: 25px;
+  border-collapse: collapse;
+  background: #1e293b;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* TABLE HEAD */
+thead {
+  background: #334155;
+}
+
+th {
+  padding: 12px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* TABLE BODY */
+td {
+  padding: 10px;
+  text-align: center;
+  border-top: 1px solid #334155;
+}
+
+/* ROW HOVER */
+tbody tr:hover {
+  background: #273449;
+}
+
+/* EXTRA COLUMN COLORS */
+td:last-child {
+  font-weight: bold;
+}
+
+/* POSITIVE EXTRA */
+td:last-child:not(:empty) {
+  color: #22c55e;
+}
+
+/* ZERO EXTRA */
+td:last-child:contains("0") {
+  color: #94a3b8;
+}
