@@ -10,38 +10,43 @@ async function loadData() {
 // Parse Variant
 function parseVariant(input) {
   try {
-    // STEP 1: Extract ALL brackets
+    // 🔥 STEP 0: CLEAN INPUT (VERY IMPORTANT)
+    input = input.replace(/\(\s*\(/g, "(")   // (( → (
+                 .replace(/\)\s*\)/g, ")"); // )) → )
+
+    // STEP 1: Extract brackets
     const brackets = input.match(/\(([^()]*)\)/g);
 
     if (!brackets || brackets.length < 2) {
       throw "Invalid format";
     }
 
-    // STEP 2: FIRST bracket = prefix (DM / NW / etc)
+    // STEP 2: prefix (DM)
     const prefix = brackets[0].replace(/[()]/g, "").trim();
 
-    // STEP 3: Extract model (text after first bracket)
+    // STEP 3: model
     const afterPrefix = input.split(")")[1].trim();
     const modelName = afterPrefix.split(" ")[0];
-
     const model = `${prefix}-${modelName}`;
 
-    // STEP 4: LAST bracket = fabric + config
+    // STEP 4: last bracket
     const last = brackets[brackets.length - 1].replace(/[()]/g, "");
 
-    const [fabricPart, configPart] = last.split(",");
+    let [fabricPart, configPart] = last.split(",");
 
     if (!fabricPart || !configPart) {
       throw "Invalid fabric/config format";
     }
 
-    // STEP 5: Extract code dynamically
+    // 🔥 STEP 5: CLEAN CONFIG AGAIN
+    configPart = configPart.replace(/[()]/g, "").trim();
+
     const code = fabricPart.trim().split("-")[0];
 
     return {
       model: model.trim(),
       code: code.trim(),
-      config: configPart.trim()
+      config: configPart
     };
 
   } catch (err) {
