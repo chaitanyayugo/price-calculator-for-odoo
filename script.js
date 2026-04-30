@@ -9,16 +9,37 @@ async function loadData() {
 
 // Parse Variant
 function parseVariant(input) {
-  const modelMatch = input.match(/\(DM\)\s*([A-Z0-9-]+)/);
-  const fabricMatch = input.match(/\(([^,]+),/);
-  const configMatch = input.match(/,\s*([^)]+)\)/);
+  try {
+    // MODEL
+    const modelMatch = input.match(/\(DM\)\s*([A-Z0-9-]+)/);
+    if (!modelMatch) throw "Model not found";
+    const model = "DM-" + modelMatch[1];
 
-  const model = "DM-" + modelMatch[1];
-  const fabricFull = fabricMatch[1];
-  const code = fabricFull.split('-')[0].trim();
-  const config = configMatch[1].trim();
+    // LAST BRACKET PART → (NW-521E FROST, 2.5S2UA)
+    const lastPartMatch = input.match(/\(([^()]+,\s*[^()]+)\)\s*$/);
+    if (!lastPartMatch) throw "Fabric/Config block not found";
 
-  return { model, code, config };
+    const lastPart = lastPartMatch[1];
+
+    // SPLIT: "NW-521E FROST" , "2.5S2UA"
+    const parts = lastPart.split(",");
+    if (parts.length < 2) throw "Invalid format";
+
+    const fabricPart = parts[0].trim();
+    const config = parts[1].trim();
+
+    // CODE = FIRST PART BEFORE "-"
+    const codeMatch = fabricPart.match(/^([A-Z]+)/);
+    if (!codeMatch) throw "Code not found";
+
+    const code = codeMatch[1];
+
+    return { model, code, config };
+
+  } catch (err) {
+    console.error("Parsing error:", input, err);
+    throw err;
+  }
 }
 
 // Get Grade
