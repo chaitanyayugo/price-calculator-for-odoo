@@ -10,9 +10,10 @@ async function loadData() {
 // Parse Variant
 function parseVariant(input) {
   try {
-    // 🔥 STEP 0: CLEAN INPUT (VERY IMPORTANT)
-    input = input.replace(/\(\s*\(/g, "(")   // (( → (
-                 .replace(/\)\s*\)/g, ")"); // )) → )
+    // 🔥 STEP 0: CLEAN INPUT
+    input = input
+      .replace(/\(\s*\(/g, "(")
+      .replace(/\)\s*\)/g, ")");
 
     // STEP 1: Extract brackets
     const brackets = input.match(/\(([^()]*)\)/g);
@@ -29,7 +30,7 @@ function parseVariant(input) {
     const modelName = afterPrefix.split(" ")[0];
     const model = `${prefix}-${modelName}`;
 
-    // STEP 4: last bracket
+    // STEP 4: last bracket (fabric + config)
     const last = brackets[brackets.length - 1].replace(/[()]/g, "");
 
     let [fabricPart, configPart] = last.split(",");
@@ -38,7 +39,7 @@ function parseVariant(input) {
       throw "Invalid fabric/config format";
     }
 
-    // 🔥 STEP 5: CLEAN CONFIG AGAIN
+    // STEP 5: clean config
     configPart = configPart.replace(/[()]/g, "").trim();
 
     const code = fabricPart.trim().split("-")[0];
@@ -54,9 +55,10 @@ function parseVariant(input) {
     throw err;
   }
 }
+
 // Get Grade
 function getGrade(code) {
-  const item = material_master.find(m => m.code === code);
+  const item = material_master.find(m => m.code.trim() === code.trim());
   if (!item) throw `Invalid Code: ${code}`;
   return item.grade;
 }
@@ -112,7 +114,7 @@ async function runCalculator() {
 
   let results = [];
 
-  lines.forEach(line => {
+  for (let line of lines) {
     try {
       const parsed = parseVariant(line);
       const grade = getGrade(parsed.code);
@@ -123,10 +125,12 @@ async function runCalculator() {
         grade,
         price
       });
+
     } catch (e) {
+      console.error("❌ Error line:", line, e);
       alert(e);
     }
-  });
+  }
 
   // Base price = first variant
   const basePrice = results[0]?.price || 0;
@@ -159,5 +163,3 @@ function displayResults(data) {
     tbody.innerHTML += row;
   });
 }
-
-what to chnage?
