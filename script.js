@@ -62,14 +62,44 @@ function getGrade(code) {
 }
 
 // Get Price
-function getPrice(model, config, grade) {
+function getFinalPrice(model, config, grade) {
+
+  // 🔥 MULTI CONFIG HANDLING
+  if (config.includes("+")) {
+
+    const parts = config.split("+").map(p => p.trim());
+    let total = 0;
+
+    for (let part of parts) {
+
+      const item = price_sheet.find(p =>
+        p.model.trim() === model.trim() &&
+        p.config.trim() === part &&
+        p.grade.trim() === grade.trim()
+      );
+
+      if (!item) {
+        console.error("❌ Missing part:", part);
+        throw `Missing part price: ${part}`;
+      }
+
+      total += item.price;
+    }
+
+    return total;
+  }
+
+  // 🔹 SINGLE CONFIG
   const item = price_sheet.find(p =>
-    p.model === model &&
-    p.config === config &&
-    p.grade === grade
+    p.model.trim() === model.trim() &&
+    p.config.trim() === config.trim() &&
+    p.grade.trim() === grade.trim()
   );
 
-  if (!item) throw `Price not found: ${model} | ${config} | ${grade}`;
+  if (!item) {
+    throw `Price not found: ${model} | ${config} | ${grade}`;
+  }
+
   return item.price;
 }
 
