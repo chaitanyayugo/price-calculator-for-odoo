@@ -42,7 +42,21 @@ function parseVariant(input) {
     // STEP 5: clean config
     configPart = configPart.replace(/[()]/g, "").trim();
 
-    const code = fabricPart.trim().split("-")[0];
+    function extractCode(fabricPart) {
+  const text = fabricPart.trim().toUpperCase();
+
+  const sortedCodes = [...material_master]
+    .map(m => String(m.code).trim().toUpperCase())
+    .sort((a, b) => b.length - a.length); // longest first
+
+  for (const code of sortedCodes) {
+    if (text === code || text.startsWith(code + "-") || text.startsWith(code + " ")) {
+      return code;
+    }
+  }
+
+  return text.split("-")[0];
+}
 
     return {
       model: model.trim(),
