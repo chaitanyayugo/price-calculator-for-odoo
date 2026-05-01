@@ -7,30 +7,46 @@ async function loadData() {
   price_sheet = await fetch('price_sheet.json').then(res => res.json());
 }
 
+// 🔥 NEW: SMART CODE EXTRACTION
+function extractCode(fabricPart) {
+  const text = fabricPart.trim().toUpperCase();
+
+  const sortedCodes = material_master
+    .map(m => m.code.trim().toUpperCase())
+    .sort((a, b) => b.length - a.length); // longest first
+
+  for (let code of sortedCodes) {
+    if (
+      text === code ||
+      text.startsWith(code + "-") ||
+      text.startsWith(code + " ")
+    ) {
+      return code;
+    }
+  }
+
+  return text.split("-")[0]; // fallback
+}
+
 // Parse Variant
 function parseVariant(input) {
   try {
-    // 🔥 STEP 0: CLEAN INPUT
     input = input
       .replace(/\(\s*\(/g, "(")
       .replace(/\)\s*\)/g, ")");
 
-    // STEP 1: Extract brackets
     const brackets = input.match(/\(([^()]*)\)/g);
 
     if (!brackets || brackets.length < 2) {
       throw "Invalid format";
     }
 
-    // STEP 2: prefix (DM)
     const prefix = brackets[0].replace(/[()]/g, "").trim();
 
-    // STEP 3: model
     const afterPrefix = input.split(")")[1].trim();
     const modelName = afterPrefix.split(" ")[0];
     const model = `${prefix}-${modelName}`;
 
-    // STEP 4: last bracket (fabric + config)
     const last = brackets[brackets.length - 1].replace(/[()]/g, "");
 
     let [fabricPart, configPart] = last.split(",");
@@ -39,24 +55,14 @@ function parseVariant(input) {
       throw "Invalid fabric/config format";
     }
 
-    // STEP 5: clean config
-    configPart = configPart.replace(/[()]/g, "").trim();
+    // 🔥 FIX: CONFIG NORMALIZATION
+    configPart = configPart
+      .replace(/[()]/g, "")
+      .trim()
+      .toUpperCase();
 
-    function extractCode(fabricPart) {
-  const text = fabricPart.trim().toUpperCase();
-
-  const sortedCodes = [...material_master]
-    .map(m => String(m.code).trim().toUpperCase())
-    .sort((a, b) => b.length - a.length); // longest first
-
-  for (const code of sortedCodes) {
-    if (text === code || text.startsWith(code + "-") || text.startsWith(code + " ")) {
-      return code;
-    }
-  }
-
-  return text.split("-")[0];
-}
+    // 🔥 FIX: SMART CODE
+    const code = extractCode(fabricPart);
 
     return {
       model: model.trim(),
@@ -72,7 +78,7 @@ function parseVariant(input) {
 
 // Get Grade
 function getGrade(code) {
-  const item = material_master.find(m => m.code.trim() === code.trim());
+  const item = material_master.find(m => m.code.trim().toUpperCase() === code.trim().toUpperCase());
   if (!item) throw `Invalid Code: ${code}`;
   return item.grade;
 }
@@ -80,7 +86,7 @@ function getGrade(code) {
 // Get Price
 function getFinalPrice(model, config, grade) {
 
-  // 🔥 MULTI CONFIG HANDLING
+  // 🔥 MULTI CONFIG
   if (config.includes("+")) {
 
     const parts = config.split("+").map(p => p.trim());
@@ -88,9 +94,12 @@ function getFinalPrice(model, config, grade) {
 
     for (let part of parts) {
 
+      // 🔥 DEBUG (keep this)
+      console.log("🔍 Checking:", model, part, grade);
+
       const item = price_sheet.find(p =>
         p.model.trim() === model.trim() &&
-        p.config.trim() === part &&
+        p.config.trim().toUpperCase() === part &&
         p.grade.trim() === grade.trim()
       );
 
@@ -108,7 +117,7 @@ function getFinalPrice(model, config, grade) {
   // 🔹 SINGLE CONFIG
   const item = price_sheet.find(p =>
     p.model.trim() === model.trim() &&
-    p.config.trim() === config.trim() &&
+    p.config.trim().toUpperCase() === config &&
     p.grade.trim() === grade.trim()
   );
 
@@ -146,10 +155,8 @@ async function runCalculator() {
     }
   }
 
-  // Base price = first variant
   const basePrice = results[0]?.price || 0;
 
-  // Calculate extras
   results = results.map(r => ({
     ...r,
     extra: r.price - basePrice
@@ -170,8 +177,8 @@ function displayResults(data) {
         <td>${d.code}</td>
         <td>${d.grade}</td>
         <td>${d.config}</td>
-        <td>${d.price}</td>
-        <td>${d.extra}</td>
+        <td>${Math.round(d.price)}</td>
+        <td>${Math.round(d.extra)}</td>
       </tr>
     `;
     tbody.innerHTML += row;
